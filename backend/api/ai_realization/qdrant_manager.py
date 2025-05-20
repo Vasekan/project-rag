@@ -1,0 +1,101 @@
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import (
+    VectorParams, Distance, PointStruct, Filter, FieldCondition, MatchValue, PointIdsList)
+import uuid
+
+COLLECTION_NAME = "documents"
+
+client = QdrantClient(host="localhost", port=6333)
+
+
+def init_collection(vector_size: int):
+    if not client.collection_exists(COLLECTION_NAME):
+        client.create_collection(
+            collection_name=COLLECTION_NAME,
+            vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
+        )
+
+
+def upload_documents(chunks: list[dict], vector_size: int):
+    init_collection(vector_size)
+
+    points = [
+        PointStruct(
+            id=str(uuid.uuid4()),
+            vector=chunk["embedding"],
+            payload={
+                "text": chunk["text"],
+                "doc_name": chunk["doc_name"]
+            }
+        )
+        for chunk in chunks
+    ]
+
+    client.upsert(collection_name=COLLECTION_NAME, points=points)
+    print(f"Загружено {len(points)} чанков в коллекцию '{COLLECTION_NAME}'.")
+
+
+# Проверка, загружен ли такой документ
+def is_document_loaded(doc_name: str) -> bool:
+    from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+
+    hits = client.scroll(
+        collection_name=COLLECTION_NAME,
+        scroll_filter=Filter(
+            must=[
+                FieldCondition(key="doc_name", match=MatchValue(value=doc_name))
+            ]
+        ),
+        limit=1,
+        with_payload=False
+    )
+
+    return len(hits[0]) > 0
+
+
+def delete_by_doc_name(doc_name: str):
+    client.delete(
+        collection_name=COLLECTION_NAME,
+        points_selector=Filter(
+            must=[
+                FieldCondition(key="doc_name", match=MatchValue(value=doc_name))
+            ]
+        )
+    )
+    print(f"Документ '{doc_name}' удалён из коллекции.")
+
+
+def delete_by_id(doc_id: str):
+    # Пытаемся получить точку по ID
+    try:
+        result = client.retrieve(
+            collection_name=COLLECTION_NAME,
+            ids=[doc_id]
+        )
+        if not result:
+            print(f"Точка с ID '{doc_id}' не найдена.")
+            return
+    except Exception as e:
+        print(f"Ошибка при попытке найти точку: {e}")
+        return
+
+    # Если точка найдена, удаляем её
+    client.delete(
+        collection_name=COLLECTION_NAME,
+        points_selector=PointIdsList(points=[doc_id])
+    )
+    print(f"Точка с ID '{doc_id}' удалена из коллекции.")
+
+
+def list_documents(limit: int = 5):
+    hits = client.scroll(
+        collection_name=COLLECTION_NAME,
+        limit=limit,
+        with_payload=True,
+        with_vectors=False
+    )
+    for point in hits[0]:
+        print(f"ID: {point.id}")
+        print(f"Имя документа: {point.payload.get('doc_name')}")
+        print(f"Текст чанка: {point.payload.get('text')}")
+        print("-" * 100)
