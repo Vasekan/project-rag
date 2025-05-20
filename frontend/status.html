@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Мониторинг ресурсов</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: white;
+      border-bottom: 2px solid #4CAF50;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar a {
+      color: #333;
+      text-decoration: none;
+      padding: 10px 20px;
+      font-weight: 500;
+      border-radius: 6px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .navbar a:hover {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #4CAF50;
+    }
+
+    .status {
+      font-size: 1.2rem;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    .status span {
+      font-weight: bold;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    canvas {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <a href="/static/index.html">Главная страница</a>
+    <a href="/static/files.html">Файлы</a>
+    <a href="/static/chat.html">ИИ-ассистент</a>
+  </div>
+
+  <div class="container">
+    <div class="title">Мониторинг Системы</div>
+    <div class="status">
+      CPU: <span id="cpu">—</span>%<br>
+      Память: <span id="memory">—</span>%<br>
+      GPU: <span id="gpu">—</span>%<br>
+      VRAM: <span id="vram">—</span>%<br>
+      Температура: <span id="temperature">—</span>%
+    </div>
+
+    <div class="charts">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let canvas = window.document.querySelector('canvas');
+    let context = canvas.getContext('2d');
+    let chart = null;
+
+    function redirectToLogin() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/static/login.html";
+    }
+    
+    const createLineChart = () => {
+      let data = {
+        labels: [],
+        datasets: [{
+          label: 'CPU',
+          data: [],
+          pointStyle: false,
+          fill: true,
+          borderWidth: 1
+        },
+        {
+          label: 'Память',
+          data: [],
+          pointStyle: false,
+          fill: true,
+          borderWidth: 1
+        },
+        {
+          label: 'GPU',
+          data: [],
+          pointStyle: false,
+          fill: true,
+          borderWidth: 1
+        },
+        {
+          label: 'VRAM',
+          data: [],
+          pointStyle: false,
+          fill: true,
+          borderWidth: 1
+        },
+        {
+          label: 'Температура',
+          data: [],
+          pointStyle: false,
+          fill: true,
+          borderWidth: 1
+        }]
+      }
+      let config = {
+        type: 'line',
+        data: data,
+        options: {
+          scales: {
+            x: {
+              grid: {color: 'rgba(0, 0, 0, 0)'}
+            },
+            y: {
+              grid: {color: 'rgba(76, 175, 80)'}
+            }
+          }
+        },
+        animation: {
+            duration: 400,
+            easing: 'linear'
+        }
+      }
+      chart = new Chart(document.getElementById('chart').getContext('2d'), config);
+    }
+
+    createLineChart();
+
+    const addData = (label, cpuData, memData, gpuData, vramData, tempData) => {
+        if (chart.data.labels.length > 30) {
+          chart.data.labels.shift();
+          chart.config.data.datasets[0].data.shift();
+          chart.config.data.datasets[1].data.shift();
+          chart.config.data.datasets[2].data.shift();
+          chart.config.data.datasets[3].data.shift();
+          chart.config.data.datasets[2].data.shift();
+        }
+        chart.data.labels.push(label);
+        chart.config.data.datasets[0].data.push(cpuData);
+        chart.config.data.datasets[1].data.push(memData);
+        chart.config.data.datasets[2].data.push(gpuData);
+        chart.config.data.datasets[3].data.push(vramData);
+        chart.config.data.datasets[2].data.push(tempData);
+        chart.update('none');
+    }
+
+    async function fetchStatus() {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/status", {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (response.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        const data = await response.json();
+        document.getElementById("cpu").textContent = data.cpu_percent.toFixed(1);
+        document.getElementById("memory").textContent = data.memory_percent.toFixed(1);
+
+        const now = new Date().toLocaleTimeString();
+
+        try {
+          document.getElementById("gpu").textContent = data.gpu_percent.toFixed(1);
+          document.getElementById("vram").textContent = data.vram_percent.toFixed(1);
+          document.getElementById("temperature").textContent = data.tempurature.toFixed(1);
+          addData(now, data.cpu_percent, data.memory_percent, data.gpu_percent, data.vram_percent, data.tempurature);
+        } catch (error) {
+          console.error("Ошибка при получении данных:", error);
+        } finally {
+          addData(now, data.cpu_percent, data.memory_percent);
+        }
+      } catch (error) {
+        console.error("Ошибка при выполнении запроса:", error);
+      }
+    }
+
+    setInterval(fetchStatus, 1000);
+    fetchStatus();
+  </script>
+
+</body>
+</html>

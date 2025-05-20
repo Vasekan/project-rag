@@ -1,0 +1,45 @@
+version: '3.8'  
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
+
+  backend:
+    build:
+      context: .
+    command: >
+      sh -c "
+        alembic upgrade head && 
+        uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgres://postgres:admin@db:5432/users
+    depends_on:
+      - db
+    networks:
+      - backend_net
+
+volumes:
+  postgres_data:
+
+networks:
+  backend_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
