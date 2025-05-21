@@ -6,3 +6,5 @@ __pycache__/
 venv/
 
 postgres_data/
+
+qdrant_data/
