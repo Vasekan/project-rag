@@ -4,7 +4,7 @@ from langchain_community.llms import Ollama
 from qdrant_client import QdrantClient
 
 # Настройки
-QDRANT_HOST = "localhost"
+QDRANT_HOST = "qdrant"
 QDRANT_PORT = 6333
 OLLAMA_MODEL = "qwen2.5:32b-instruct-q3_K_S"
 OLLAMA_BASE_URL = "http://176.57.78.197:11434"
