@@ -67,7 +67,7 @@ def main(user_message: str):
         if is_document_loaded(argument.strip()):
             return "Файл/чанки из файла загружены"
         else:
-            return "Такого нет!"
+            return "Неверный выбор. Попробуйте снова."
 
     else:
         return show_menu()
