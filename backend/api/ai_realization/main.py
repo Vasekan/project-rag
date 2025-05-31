@@ -50,7 +50,7 @@ def main(user_message: str):
         return list_documents()
  
     elif choice == "5":
-        results = get_relevant_chunks(argument.split(), COLLECTION_NAME)
+        results = get_relevant_chunks(argument, COLLECTION_NAME)
         if not results:
             return "Ничего не найдено."
         output = ["+" * 100]
@@ -60,7 +60,7 @@ def main(user_message: str):
             output.append(f"Текст чанка: {result.payload.get('text')[:100]}...") 
             output.append("+" * 100)
 
-        answer = generate_answer_from_context(argument.split(), results)
+        answer = generate_answer_from_context(argument, results)
         return "\n".join(output + [f"\nОтвет ассистента:\n{answer}"])
 
     elif choice == '6':
