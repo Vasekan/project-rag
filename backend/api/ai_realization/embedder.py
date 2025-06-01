@@ -3,7 +3,7 @@ from qdrant_client import QdrantClient, models
 
 model = SentenceTransformer("intfloat/multilingual-e5-large")
 COLLECTION_NAME = "documents"
-client = QdrantClient(host="qdrant", port=6333)
+client = QdrantClient(url="http://localhost:6333")
 
 
 def get_embedding(text: str):
