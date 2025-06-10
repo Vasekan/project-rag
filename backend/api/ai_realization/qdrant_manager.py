@@ -6,6 +6,7 @@ import uuid
 COLLECTION_NAME = "documents"
 
 client = QdrantClient(host="qdrant", port=6333)
+# client = QdrantClient(url="http://localhost:6333")
 
 
 def init_collection(vector_size: int):

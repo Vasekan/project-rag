@@ -5,7 +5,7 @@ from qdrant_client import QdrantClient
 
 # Настройки
 
-URL="http://localhost:6333"
+URL="http://qdrant:6333"
 OLLAMA_MODEL = "qwen2.5:32b-instruct-q3_K_S"
 OLLAMA_BASE_URL = "http://176.57.78.197:11434"
 
