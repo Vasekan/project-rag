@@ -4,7 +4,7 @@ from backend.api.ai_realization.main import main # подключение к р�
 
 
 async def get_answer(chat: ChatBaseSchema):
-    log_interaction(chat.source, chat.message, chat.message)
-    message = main() # Тут вызов ассистента
+    message = main(chat.message) # Тут вызов ассистента
+    log_interaction(chat.source, chat.message, message)
 
     return {"message": f"{message}"}

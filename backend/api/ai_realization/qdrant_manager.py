@@ -5,7 +5,7 @@ import uuid
 
 COLLECTION_NAME = "documents"
 
-client = QdrantClient(host="localhost", port=6333)
+client = QdrantClient(host="qdrant", port=6333)
 
 
 def init_collection(vector_size: int):
@@ -32,7 +32,7 @@ def upload_documents(chunks: list[dict], vector_size: int):
     ]
 
     client.upsert(collection_name=COLLECTION_NAME, points=points)
-    print(f"Загружено {len(points)} чанков в коллекцию '{COLLECTION_NAME}'.")
+    return f"Загружено {len(points)} чанков в коллекцию '{COLLECTION_NAME}'."
 
 
 # Проверка, загружен ли такой документ
@@ -62,7 +62,7 @@ def delete_by_doc_name(doc_name: str):
             ]
         )
     )
-    print(f"Документ '{doc_name}' удалён из коллекции.")
+    return f"Документ '{doc_name}' удалён из коллекции."
 
 
 def delete_by_id(doc_id: str):
@@ -84,7 +84,7 @@ def delete_by_id(doc_id: str):
         collection_name=COLLECTION_NAME,
         points_selector=PointIdsList(points=[doc_id])
     )
-    print(f"Точка с ID '{doc_id}' удалена из коллекции.")
+    return f"Точка с ID '{doc_id}' удалена из коллекции."
 
 
 def list_documents(limit: int = 5):
@@ -94,8 +94,15 @@ def list_documents(limit: int = 5):
         with_payload=True,
         with_vectors=False
     )
+
+    if not hits[0]: 
+        return "Пусто"
+
+    output = []
     for point in hits[0]:
-        print(f"ID: {point.id}")
-        print(f"Имя документа: {point.payload.get('doc_name')}")
-        print(f"Текст чанка: {point.payload.get('text')}")
-        print("-" * 100)
+        output.append(f"ID: {point.id}")
+        output.append(f"Имя документа: {point.payload.get('doc_name')}")
+        output.append(f"Текст чанка: {point.payload.get('text')}")  
+        output.append("-" * 100)
+
+    return "\n".join(output)
