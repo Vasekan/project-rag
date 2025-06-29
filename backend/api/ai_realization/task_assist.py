@@ -25,16 +25,26 @@ def truncate_context(context: str, max_length: int = 8000) -> str:
     return context[:max_length]
 
 
-def get_relevant_chunks(question: str, collection_name: str = "documents", top_k: int = 3):
+def get_relevant_chunks(question: str, user_id: str, collection_name: str = "documents", top_k: int = 3):
     """Поиск релевантных чанков (qdrant.query_points)"""
     from backend.api.ai_realization.embedder import get_embedding
+    from backend.api.ai_realization.qdrant_manager import client as qdrant_client
+    from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 
     query_vector = get_embedding(question)
     search_result = qdrant_client.query_points(
         collection_name=collection_name,
         query=query_vector,
         limit=top_k,
-        with_payload=True
+        with_payload=True,
+        query_filter=Filter(
+            must=[
+                FieldCondition(
+                    key="user_id",
+                    match=MatchValue(value=str(user_id))
+                )
+            ]
+        )
     )
     return search_result.points
 
