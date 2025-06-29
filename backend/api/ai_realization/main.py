@@ -51,7 +51,7 @@ def main(user_message: str):
         return list_documents(user_id_NONE)
  
     elif choice == "5":
-        results = get_relevant_chunks(argument, COLLECTION_NAME)
+        results = get_relevant_chunks(argument, user_id_NONE, COLLECTION_NAME)
         if not results:
             return "Ничего не найдено."
         output = ["+" * 100]
