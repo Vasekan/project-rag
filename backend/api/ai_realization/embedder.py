@@ -14,12 +14,21 @@ def get_vector_size():
     return model.get_sentence_embedding_dimension()
 
 
-def search_relevant_chunks(question: str, top_k: int = 3):
+def search_relevant_chunks(question: str, user_id: str, top_k: int = 3):
     query_vector = get_embedding(question)
     search_result = client.query_points(
         collection_name=COLLECTION_NAME,
         query=query_vector,
         limit=top_k,
-        with_payload=True
+        with_payload=True,
+
+        query_filter=models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="user_id",
+                    match=models.MatchValue(value=user_id)
+                )
+            ]
+        )
     )
     return search_result
