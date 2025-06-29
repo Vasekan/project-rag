@@ -7,6 +7,7 @@ import os
 
 FOLDER_PATH = "documents"  # Папка с .txt файлами
 COLLECTION_NAME = "documents"
+user_id_NONE = "Заглушка_для_user_id"
 
 
 def show_menu():
@@ -34,12 +35,12 @@ def main(user_message: str):
             return "Нет подходящих .txt файлов для загрузки."
 
         vector_size = get_vector_size()
-        return upload_documents(chunks, vector_size)
+        return upload_documents(chunks, vector_size, user_id_NONE)
 
     elif choice == "2":
         if not argument:
             return "Пожалуйста, укажите имя файла. Пример: 2 example.txt"
-        return delete_by_doc_name(argument.strip())
+        return delete_by_doc_name(argument.strip(), user_id_NONE)
 
     elif choice == "3":
         if not argument:
@@ -47,7 +48,7 @@ def main(user_message: str):
         return delete_by_id(argument.strip())
     
     elif choice == "4":
-        return list_documents()
+        return list_documents(user_id_NONE)
  
     elif choice == "5":
         results = get_relevant_chunks(argument, COLLECTION_NAME)
@@ -64,7 +65,7 @@ def main(user_message: str):
         return "\n".join(output + [f"\nОтвет ассистента:\n{answer}"])
 
     elif choice == '6':
-        if is_document_loaded(argument.strip()):
+        if is_document_loaded(argument.strip(), user_id_NONE):
             return "Файл/чанки из файла загружены"
         else:
             return "Неверный выбор. Попробуйте снова."
