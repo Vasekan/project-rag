@@ -42,7 +42,7 @@ def parse_docx(path: str) -> str:
     return "\n\n".join([para.text for para in doc.paragraphs if para.text.strip()])
 
 
-def load_all_documents() -> List[Dict]:
+def load_all_documents(user_id: str) -> List[Dict]:
     chunks = []
 
     if not os.path.exists(FOLDER_PATH):
@@ -68,7 +68,8 @@ def load_all_documents() -> List[Dict]:
                 chunks.append({
                     "text": chunk,
                     "embedding": get_embedding(chunk),
-                    "doc_name": filename
+                    "doc_name": filename,
+                    "user_id": user_id
                 })
 
         except Exception as e:
