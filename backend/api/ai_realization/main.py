@@ -1,4 +1,4 @@
-from backend.api.ai_realization.document_loader import load_txt_documents
+from backend.api.ai_realization.document_loader import load_all_documents
 from backend.api.ai_realization.embedder import get_vector_size
 from backend.api.ai_realization.qdrant_manager import upload_documents, delete_by_doc_name, delete_by_id, \
     list_documents, is_document_loaded

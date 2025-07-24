@@ -7,7 +7,7 @@ from sqlalchemy import delete, select, update
 from backend.db import get_session
 from backend.api.models.files import File
 from backend.api.ai_realization.qdrant_manager import delete_by_doc_name
-from backend.api.ai_realization.document_loader import load_txt_documents
+from backend.api.ai_realization.document_loader import load_all_documents
 from backend.api.ai_realization.embedder import get_vector_size
 from backend.api.ai_realization.qdrant_manager import upload_documents
 

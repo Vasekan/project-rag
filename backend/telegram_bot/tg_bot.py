@@ -4,7 +4,9 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from backend.utils.log import log_interaction
-from backend.api.ai_realization.main import main # подключение к реализации ассистента
+from backend.api.ai_realization.task_assist import get_relevant_chunks, generate_answer_from_context
+
+COLLECTION_NAME = "documents"
 
 
 bot = Bot(
@@ -17,20 +19,22 @@ router = Router()
 
 @router.message(CommandStart())
 async def start(message: types.Message):
-    await message.answer(
-        f"Выберите действие:\n"
-        f"1. Загрузить документы в базу\n"
-        f"2. Удалить документ по имени файла (Пример: 2 example.txt)\n"
-        f"3. Удалить вектор по ID (Пример: 3 123456)\n"
-        f"4. Посмотреть загруженные документы\n"
-        f"5. Задать вопрос (Пример: 5 Как дела?)\n"
-        f"6. Проверить, загружен ли документ с именем 'Имя' (Пример: 6 example.txt)"
-    )
+    await message.answer("Задайте вопрос, и ИИ на него ответит.")
 
 @router.message()
 async def handle_message(message: types.Message):
     user_message = message.text
-    reply = main(user_message) # Тут вызов ассистента
+    results = get_relevant_chunks(user_message, COLLECTION_NAME)
+    if not results:
+        return "Ничего не найдено."
+    output = ["+" * 100]
+    for result in results:
+        output.append(f"Релевантность: {result.score:.3f}")
+        output.append(f"Документ: {result.payload.get('doc_name')}")
+        output.append(f"Текст чанка: {result.payload.get('text')[:100]}...") 
+        output.append("+" * 100)
+
+    reply = generate_answer_from_context(user_message, results)  # Тут вызов ассистента
     log_interaction(source="telegram", question=user_message, answer=reply)
     await message.answer(reply)
 

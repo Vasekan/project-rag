@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   db:
     image: postgres:15
@@ -9,16 +10,21 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data # Используем только привязку тома
     networks:
       - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: .
     command: >
       sh -c "
-        alembic upgrade head && 
+        alembic upgrade head &&
         uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
       "
     volumes:
@@ -28,7 +34,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:admin@db:5432/users
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Указываем условие
     networks:
       - backend_net
 
@@ -41,7 +48,7 @@ services:
     environment:
       - QDRANT__SERVICE__GRPC_PORT=6334
     networks:
-      - backend_net  
+      - backend_net
 
   rag-app:
     build: .
@@ -52,14 +59,14 @@ services:
     environment:
       - QDRANT_HOST=qdrant
     networks:
-      - backend_net  
+      - backend_net
 
-volumes:
-  postgres_data:
+# volumes: #  Удаляем лишнюю секцию volumes
+  # postgres_data:
 
 networks:
   backend_net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.100.0/24
+    # ipam: #  Удаляем фикс. IP (если нет необходимости)
+    #   config:
+    #     - subnet: 192.168.100.0/24

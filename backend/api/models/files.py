@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 
 from backend.api.models.base import Base
+from backend.api.models.user import User
+
 
 class File(Base):
     __tablename__ = 'files'
