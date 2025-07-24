@@ -69,16 +69,12 @@
       align-items: center;
     }
     .file-list button {
-      background-color: #f44336;
       color: white;
       border: none;
       padding: 4px 8px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.9rem;
-    }
-    .file-list button:hover {
-      background-color: #d32f2f;
     }
     .upload-form input[type="file"] {
       display: none;
@@ -170,7 +166,7 @@
       localStorage.removeItem("access_token");
       window.location.href = "/static/login.html";
     }
-    
+
     async function fetchFiles() {
       try {
         const response = await fetch('http://127.0.0.1:8000/files', {
@@ -188,17 +184,43 @@
 
         const data = await response.json();
         const fileListElement = document.getElementById('fileList');
-        fileListElement.innerHTML = ''; 
+        fileListElement.innerHTML = '';
 
-        data.files.forEach(file => {
+        data.files.forEach(fileObj => {
           const li = document.createElement('li');
-          li.textContent = file;
 
+          const fileNameSpan = document.createElement('span');
+          fileNameSpan.textContent = fileObj.file;
+          li.appendChild(fileNameSpan);
+
+          const buttonsContainer = document.createElement('div');
+          buttonsContainer.style.display = 'flex';
+          buttonsContainer.style.gap = '8px';
+
+          // Кнопка удаления файла
           const deleteButton = document.createElement('button');
           deleteButton.textContent = 'Удалить';
-          deleteButton.onclick = () => deleteFile(file);
-          li.appendChild(deleteButton);
+          deleteButton.style.backgroundColor = '#f44336';
+          deleteButton.onclick = () => deleteFile(fileObj.file);
+          buttonsContainer.appendChild(deleteButton);
 
+          // Кнопка загрузки/удаления из ИИ в зависимости от is_load
+          const aiButton = document.createElement('button');
+          aiButton.style.color = '#333';
+
+          if (fileObj.is_load) {
+            aiButton.textContent = 'Удалить из ИИ';
+            aiButton.style.backgroundColor = '#f44336';
+            aiButton.style.color = 'white';
+            aiButton.onclick = () => deleteFromAI(fileObj.file, aiButton);
+          } else {
+            aiButton.textContent = 'Загрузить в ИИ';
+            aiButton.style.backgroundColor = '#ffca28';
+            aiButton.onclick = () => uploadToAI(fileObj.file, aiButton);
+          }
+
+          buttonsContainer.appendChild(aiButton);
+          li.appendChild(buttonsContainer);
           fileListElement.appendChild(li);
         });
       } catch (error) {
@@ -206,9 +228,99 @@
       }
     }
 
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault(); 
+    async function deleteFile(fileName) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/files/${fileName}`, {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token
+          }
+        });
 
+        if (response.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        if (response.ok) {
+          alert(`Файл "${fileName}" удалён`);
+          fetchFiles();
+        } else {
+          alert('Ошибка при удалении файла');
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении файла:', error);
+      }
+    }
+
+    async function uploadToAI(fileName, button) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/chunks/${fileName}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: ''  // как в curl -d ''
+        });
+
+        if (response.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        if (response.ok) {
+          alert(`Файл "${fileName}" отправлен на обработку chunk'ами.`);
+          // Меняем кнопку на "Удалить из ИИ"
+          button.textContent = 'Удалить из ИИ';
+          button.style.backgroundColor = '#f44336';
+          button.style.color = 'white';
+          button.onclick = () => deleteFromAI(fileName, button);
+        } else {
+          const errorData = await response.json();
+          alert(`Ошибка при загрузке в ИИ: ${errorData.detail || 'Неизвестная ошибка'}`);
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке в ИИ:', error);
+        alert('Ошибка соединения с сервером.');
+      }
+    }
+
+    async function deleteFromAI(fileName, button) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/chunks/${fileName}`, {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (response.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        if (response.ok) {
+          alert(`Файл "${fileName}" удалён из ИИ.`);
+          // Меняем кнопку на "Загрузить в ИИ"
+          button.textContent = 'Загрузить в ИИ';
+          button.style.backgroundColor = '#ffca28';
+          button.style.color = '#333';
+          button.onclick = () => uploadToAI(fileName, button);
+        } else {
+          const errorData = await response.json();
+          alert(`Ошибка при удалении из ИИ: ${errorData.detail || 'Неизвестная ошибка'}`);
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении из ИИ:', error);
+        alert('Ошибка соединения с сервером.');
+      }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
       const fileInput = document.getElementById('fileInput');
       if (!fileInput.files[0]) {
         alert("Выберите файл для загрузки.");
@@ -235,9 +347,9 @@
 
         if (response.ok) {
           alert('Файл загружен!');
-          fetchFiles(); 
+          fetchFiles();
         } else {
-          const errorData = await response.json(); 
+          const errorData = await response.json();
           alert(`Ошибка при загрузке файла: ${errorData.detail || 'Неизвестная ошибка'}`);
         }
       } catch (error) {
@@ -246,44 +358,13 @@
       }
     });
 
-    async function deleteFile(fileName) {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/files/${fileName}`, {
-          method: 'DELETE',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + token
-          }
-        });
-
-        if (response.status === 401) {
-          redirectToLogin();
-          return;
-        }
-
-        if (response.ok) {
-          alert(`Файл "${fileName}" удалён`);
-          fetchFiles(); 
-        } else {
-          alert('Ошибка при удалении файла');
-        }
-      } catch (error) {
-        console.error('Ошибка при удалении файла:', error);
-      }
-    }
-
     document.getElementById('fileInput').addEventListener('change', function () {
       const fileNameDisplay = document.getElementById('fileName');
       const file = this.files[0];
-      if (file) {
-        fileNameDisplay.textContent = `Выбрано: ${file.name}`;
-      } else {
-        fileNameDisplay.textContent = 'Выберите файл для загрузки';
-      }
+      fileNameDisplay.textContent = file ? `Выбрано: ${file.name}` : 'Выберите файл для загрузки';
     });
 
     fetchFiles();
   </script>
-
 </body>
 </html>

@@ -26,7 +26,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgres://postgres:admin@db:5432/users
+      DATABASE_URL: postgresql+asyncpg://postgres:admin@db:5432/users
     depends_on:
       - db
     networks:
