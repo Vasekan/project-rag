@@ -42,37 +42,36 @@ def parse_docx(path: str) -> str:
     return "\n\n".join([para.text for para in doc.paragraphs if para.text.strip()])
 
 
-def load_all_documents(user_id: str) -> List[Dict]:
+def load_all_documents(filename: str, user_id: str) -> List[Dict]:
     chunks = []
 
     if not os.path.exists(FOLDER_PATH):
         return []
 
-    for filename in os.listdir(FOLDER_PATH):
-        full_path = os.path.join(FOLDER_PATH, filename)
-        if not os.path.isfile(full_path):
-            continue
+    full_path = os.path.join(FOLDER_PATH, f"{user_id}/{filename}")
+    if not os.path.isfile(full_path):
+        return []
 
-        ext = os.path.splitext(filename)[1].lower()
-        try:
-            if ext == ".txt":
-                text = parse_txt(full_path)
-            elif ext == ".pdf":
-                text = parse_pdf(full_path)
-            elif ext == ".docx":
-                text = parse_docx(full_path)
-            else:
-                continue  # Другой формат, который не поддерживается
+    ext = os.path.splitext(filename)[1].lower()
+    try:
+        if ext == ".txt":
+            text = parse_txt(full_path)
+        elif ext == ".pdf":
+            text = parse_pdf(full_path)
+        elif ext == ".docx":
+            text = parse_docx(full_path)
+        else:
+            return []  # Другой формат, который не поддерживается
 
-            for chunk in chunk_text(text):
-                chunks.append({
-                    "text": chunk,
-                    "embedding": get_embedding(chunk),
-                    "doc_name": filename,
-                    "user_id": user_id
-                })
+        for chunk in chunk_text(text):
+            chunks.append({
+                "text": chunk,
+                "embedding": get_embedding(chunk),
+                "doc_name": filename,
+                "user_id": str(user_id)
+            })
 
-        except Exception as e:
-            print(f"Ошибка при обработке {filename}: {e}")
+    except Exception as e:
+        print(f"Ошибка при обработке {filename}: {e}")
 
     return chunks

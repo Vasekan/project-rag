@@ -29,7 +29,7 @@ def upload_documents(chunks: list[dict], vector_size: int, user_id: str):
             payload={
                 "text": chunk["text"],
                 "doc_name": chunk["doc_name"],
-                "user_id": user_id
+                "user_id": str(user_id)
             }
         )
         for chunk in chunks

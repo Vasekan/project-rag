@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 DB_URL = 'postgresql+asyncpg://postgres:admin@db:5432/users'
+# DB_URL = 'postgresql+asyncpg://postgres:admin@localhost:5433/users'
 
 engine = create_async_engine(
     url=DB_URL,

@@ -229,7 +229,12 @@
 
         } catch (err) {
           console.error("Ошибка:", err);
-          addMessage("Ошибка связи с сервером.", "server");
+
+          // Показать текст ошибки от сервера, если он есть
+          const errorMessage =
+            err?.response?.data?.detail || err?.message || "Ошибка связи с сервером.";
+
+          addMessage(`Ошибка: ${errorMessage}`, "server");
         }
       }
     }

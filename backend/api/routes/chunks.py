@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.post("/chunks/{filename}")
 async def upload_file_ai(filename: str, current_user: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    return await upload_chunks(filename, session)
+    return await upload_chunks(filename, current_user, session)
 
 @router.delete("/chunks/{filename}")
 async def delete_from_ai(filename: str, current_user: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    return await delete_chunks(filename, session)
+    return await delete_chunks(filename, current_user, session)

@@ -10,12 +10,12 @@ router = APIRouter()
 
 @router.post("/files/upload")
 async def upload_file(file: UploadFile, current_user: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    return await upload_files(file, session)
+    return await upload_files(file, current_user, session)
 
 @router.get("/files")
 async def list_uploaded_files(current_user: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    return await get_files(session)
+    return await get_files(current_user, session)
 
 @router.delete("/files/{filename}")
 async def delete_file(filename: str, current_user: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
-    return await delete_files(filename, session)
+    return await delete_files(filename, current_user, session)

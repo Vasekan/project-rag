@@ -10,7 +10,7 @@ COLLECTION_NAME = "documents"
 
 
 bot = Bot(
-    token= '7906599142:AAE4FnO01P09FYj5PD-j8vLBeDAEqbEkuCc',
+    token= '7357247017:AAGzqgnyQry_NnfKRvrQ_Pw2jZdX1_a7c3Q',
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 
