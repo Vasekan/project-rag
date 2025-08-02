@@ -30,7 +30,7 @@ def main(user_message: str):
         if not os.path.exists(FOLDER_PATH):
             return f"Папка '{FOLDER_PATH}' не найдена. Создайте её и положите .txt файлы."
 
-        chunks = load_txt_documents(FOLDER_PATH)
+        chunks = load_all_documents(FOLDER_PATH)
         if not chunks:
             return "Нет подходящих .txt файлов для загрузки."
 
