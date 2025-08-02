@@ -1,6 +1,7 @@
 # backend/api/ai_realization/task_assist.py
 
-from langchain_community.llms import Ollama
+# from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 from qdrant_client import QdrantClient
 
 # Настройки
@@ -13,7 +14,7 @@ OLLAMA_BASE_URL = "http://176.57.78.197:11434"
 qdrant_client = QdrantClient(url=URL)
 
 # Модель Ollama
-ollama_llm = Ollama(
+ollama_llm = OllamaLLM(
     model=OLLAMA_MODEL,
     base_url=OLLAMA_BASE_URL
 )
