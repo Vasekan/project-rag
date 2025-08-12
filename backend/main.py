@@ -6,13 +6,19 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.api.routes import api_router
 from backend.telegram_bot.tg_bot import bot, dp
+from backend.redis.redis_client import create_redis_client
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.redis = await create_redis_client()
+
+    # Запуск Telegram-бота
     polling_task = asyncio.create_task(dp.start_polling(bot))
     yield
+
     polling_task.cancel()
+    await app.state.redis.close()
 
 app = FastAPI(title="Budget", lifespan=lifespan)
 
