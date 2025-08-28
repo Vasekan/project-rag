@@ -75,6 +75,18 @@ services:
     networks:
       - backend_net
 
+
+  tests:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - TEST_MODE=true
+    command: python test.py 
+    depends_on:
+      - backend
+
 # volumes: #  Удаляем лишнюю секцию volumes
   # postgres_data:
 
