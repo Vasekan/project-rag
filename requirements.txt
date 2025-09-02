@@ -17,3 +17,6 @@ docx==0.2.4
 python-docx==1.2.0
 pdfplumber==0.11.7
 redis[async]==5.0.4
+# для тестирования
+datasets==2.18.0
+ragas==0.3.2

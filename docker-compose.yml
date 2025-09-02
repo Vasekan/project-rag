@@ -76,14 +76,14 @@ services:
       - backend_net
 
 
-  tests:
+  test:
     build: .
     volumes:
       - .:/app
     environment:
       - PYTHONPATH=/app
       - TEST_MODE=true
-    command: python test.py 
+    command: python backend/api/ai_realization/test.py
     depends_on:
       - backend
 

@@ -18,28 +18,17 @@ from backend.api.ai_realization.main import main # RAG
 
 current_user = 'user'
 
-async def test_rag_system(chat: ChatBaseSchema):
+async def test_rag_system():
     # Тестовый датасет. Берем 50 вопросов-ответов
     squad = load_dataset("squad", "plain_text")
     test_data = squad["train"].select(range(50))
-    
-
-    if not results:
-        return {"message": "Ничего не найдено."}
-    output = ["+" * 100]
-    for result in results:
-        output.append(f"Релевантность: {result.score:.3f}")
-        output.append(f"Документ: {result.payload.get('doc_name')}")
-        output.append(f"Текст чанка: {result.payload.get('text')[:100]}...") 
-        output.append("+" * 100)
-
-    
+        
     # Получаем ответы от системы
     answers = []
     contexts = []
     
-    for question in test_data["question"]:
-        results = get_relevant_chunks(question, current_user.id, test_data)
+    for i, question in enumerate(test_data["question"]):
+        results = get_relevant_chunks(question, current_user.id, test_data['context'][i])
         answers.append(generate_answer_from_context(question, results))
         context_text = "\n\n".join([chunk.payload.get("text", "") for chunk in results])
         contexts.append(truncate_context(context_text))
