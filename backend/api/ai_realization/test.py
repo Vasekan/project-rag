@@ -28,7 +28,7 @@ async def test_rag_system():
     contexts = []
     
     for i, question in enumerate(test_data["question"]):
-        results = get_relevant_chunks(question, current_user.id, test_data['context'][i])
+        results = get_relevant_chunks(question, current_user, test_data['context'][i])
         answers.append(generate_answer_from_context(question, results))
         context_text = "\n\n".join([chunk.payload.get("text", "") for chunk in results])
         contexts.append(truncate_context(context_text))
